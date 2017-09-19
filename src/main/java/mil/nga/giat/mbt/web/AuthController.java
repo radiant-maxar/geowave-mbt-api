@@ -21,7 +21,7 @@ public class AuthController {
         // Stub implementation for Gx OAuth 2 until custom provider is finished
         return ResponseEntity
                 .status(301)
-                .header("Location", "/auth/login/callback")
+                .header("Location", "http://localhost:5001/ms_oauth/oauth2/endpoints/oauthservice/authorize?redirect_uri=http://localhost:3001/auth/login/callback")
                 .build();
 
         // HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK
@@ -38,7 +38,24 @@ public class AuthController {
         // Stub implementation for Gx OAuth 2 until custom provider is finished
         return ResponseEntity
                 .status(301)
-                .header("Location", "http://localhost:3000/login?success=true")
+                .header("Location", "/?logged_in=true")
+                .build();
+
+        // HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK
+        // HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK
+        // HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK
+    }
+
+    @GetMapping("/auth/logout")
+    public ResponseEntity logout() {
+        // HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK
+        // HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK
+        // HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK
+
+        // Stub implementation for Gx OAuth 2 until custom provider is finished
+        return ResponseEntity
+                .status(301)
+                .header("Location", "/")
                 .build();
 
         // HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK
