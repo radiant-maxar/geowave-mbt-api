@@ -21,7 +21,7 @@ public class BasemapConfiguration {
     }
 
     @NotNull
-    public UriTemplate getURITemplate(@NotNull String id) throws UnknownBasemapException {
+    public UriTemplate templateFor(@NotNull String id) throws UnknownBasemapException {
         String normalizedId = id.trim().toLowerCase();
         if (normalizedId.equals("dark")) {
             return new UriTemplate(basemapDark);

@@ -26,13 +26,18 @@ import java.util.concurrent.TimeUnit;
 @RestController
 public class TileProxyController {
     private static final int BASEMAP_CACHE_HOURS = 6;
+
     private static final Logger logger = LoggerFactory.getLogger(TileProxyController.class);
 
-    @Autowired
-    private ServletContext context;
+    private final ServletContext context;
+
+    private final BasemapConfiguration basemaps;
 
     @Autowired
-    private BasemapConfiguration basemaps;
+    public TileProxyController(ServletContext context, BasemapConfiguration basemaps) {
+        this.context = context;
+        this.basemaps = basemaps;
+    }
 
     @GetMapping("/basemaps/{id}/{z}/{x}/{y}.png")
     ResponseEntity<InputStreamResource> basemap(@PathVariable String id,
@@ -47,7 +52,7 @@ public class TileProxyController {
 
         URI uri;
         try {
-            uri = basemaps.getURITemplate(id).expand(params);
+            uri = basemaps.templateFor(id).expand(params);
         }
         catch (BasemapConfiguration.UnknownBasemapException e) {
             logger.error("Unknown basemap ID \"{}\"", id);
