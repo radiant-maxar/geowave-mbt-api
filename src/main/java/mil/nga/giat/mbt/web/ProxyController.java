@@ -1,40 +1,33 @@
 package mil.nga.giat.mbt.web;
 
-import mil.nga.giat.mbt.config.BasemapConfiguration;
+import mil.nga.giat.mbt.service.BasemapService;
+import mil.nga.giat.mbt.service.GeoServerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.ServletContext;
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @RestController
-public class TileProxyController {
+public class ProxyController {
     private static final int BASEMAP_CACHE_HOURS = 6;
 
-    private static final Logger logger = LoggerFactory.getLogger(TileProxyController.class);
+    private static final Logger logger = LoggerFactory.getLogger(ProxyController.class);
 
     private final ServletContext context;
-
-    private final BasemapConfiguration basemaps;
+    private final BasemapService basemaps;
 
     @Autowired
-    public TileProxyController(ServletContext context, BasemapConfiguration basemaps) {
+    public ProxyController(ServletContext context, BasemapService basemaps, GeoServerService geoserver) {
         this.context = context;
         this.basemaps = basemaps;
     }
@@ -44,31 +37,18 @@ public class TileProxyController {
                                                 @PathVariable int x,
                                                 @PathVariable int y,
                                                 @PathVariable int z) {
-        RestTemplate rt = new RestTemplate();
-        Map<String, Integer> params = new HashMap<>();
-        params.put("x", x);
-        params.put("y", y);
-        params.put("z", z);
-
-        URI uri;
         try {
-            uri = basemaps.templateFor(id).expand(params);
-        }
-        catch (BasemapConfiguration.UnknownBasemapException e) {
-            logger.error("Unknown basemap ID \"{}\"", id);
-            return errorAsTile(HttpStatus.NOT_FOUND);
-        }
-
-        logger.debug("Proxying basemap request {}", uri);
-        try {
-            Resource resource = rt.getForObject(uri, Resource.class);
+            InputStream stream = basemaps.fetchTile(id, x, y, z);
             return ResponseEntity
                     .ok()
                     .cacheControl(CacheControl.maxAge(BASEMAP_CACHE_HOURS, TimeUnit.HOURS))
-                    .body(new InputStreamResource(resource.getInputStream()));
+                    .body(new InputStreamResource(stream));
         }
-        catch (IOException | RestClientException e) {
-            logger.error("Could not proxy basemap request: {} (uri={})", e, uri);
+        catch (BasemapService.UnknownBasemapException e) {
+            logger.error("Unknown basemap ID \"{}\"", id);
+            return errorAsTile(HttpStatus.NOT_FOUND);
+        }
+        catch (BasemapService.CommunicationException e) {
             return errorAsTile();
         }
     }
