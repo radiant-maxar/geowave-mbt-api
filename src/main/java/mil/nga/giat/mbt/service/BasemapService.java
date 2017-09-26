@@ -10,7 +10,6 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriTemplate;
 
-import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -51,7 +50,7 @@ public class BasemapService {
         }
     }
 
-    private UriTemplate templateFor(@NotNull String id) throws UnknownBasemapException {
+    private UriTemplate templateFor(String id) throws UnknownBasemapException {
         String normalizedId = id.trim().toLowerCase();
 
         switch (normalizedId) {
