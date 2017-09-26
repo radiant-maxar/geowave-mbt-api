@@ -48,7 +48,7 @@ public class ProxyController {
             body.put("layers", layers);
 
             return ResponseEntity
-                    .status(200)
+                    .status(HttpStatus.OK)
                     .cacheControl(CacheControl.maxAge(WMS_INDEX_CACHE_HOURS, TimeUnit.HOURS))
                     .body(body);
         }
@@ -59,6 +59,10 @@ public class ProxyController {
             return errorAsMessage("GeoServer returned malformed response");
         }
     }
+
+    @GetMapping("/wms")
+    ResponseEntity wmsPassthrough(HttpServletRequest request) {
+        return geoserver.wms(request.getParameterMap());
     }
 
     @GetMapping("/basemaps/{id}/{z}/{x}/{y}.png")

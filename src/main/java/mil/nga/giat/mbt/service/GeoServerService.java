@@ -5,12 +5,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.validation.constraints.NotNull;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -43,7 +43,13 @@ public class GeoServerService {
     }
 
     public List<String> listLayers() throws CommunicationException, MalformedResponseException {
-        URI uri = new UriTemplate("{baseUrl}/wms?REQUEST=GetCapabilities").expand(baseURL);
+        URI uri = UriComponentsBuilder
+                .fromHttpUrl(baseURL)
+                .path("/wms")
+                .queryParam("REQUEST", "GetCapabilities")
+                .build()
+                .toUri();
+
         logger.debug("Requesting {}", uri);
 
         try {
@@ -60,6 +66,21 @@ public class GeoServerService {
             logger.error("Could not read GeoServer response: {}", e);
             throw new CommunicationException(e);
         }
+    }
+
+    public ResponseEntity<Resource> wms(Map<String, String[]> params) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseURL)
+                .path("/wms");
+
+        for (Map.Entry<String, String[]> entry : params.entrySet()) {
+            builder.queryParam(entry.getKey(), (Object[]) entry.getValue());
+        }
+
+        URI uri = builder.build().toUri();
+
+        logger.debug("Requesting {}", uri);
+
+        return client.getForEntity(uri, Resource.class);
     }
 
     private List<String> extractLayerNames(InputStream stream) throws MalformedResponseException {
