@@ -14,22 +14,51 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @RestController
 public class ProxyController {
     private static final int BASEMAP_CACHE_HOURS = 6;
+    private static final int WMS_INDEX_CACHE_HOURS = 0;
 
     private static final Logger logger = LoggerFactory.getLogger(ProxyController.class);
 
     private final ServletContext context;
     private final BasemapService basemaps;
+    private final GeoServerService geoserver;
 
     @Autowired
     public ProxyController(ServletContext context, BasemapService basemaps, GeoServerService geoserver) {
         this.context = context;
         this.basemaps = basemaps;
+        this.geoserver = geoserver;
+    }
+
+    @GetMapping("/wms-index")
+    ResponseEntity wmsIndex() {
+        try {
+            List<String> layers = geoserver.listLayers();
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("layers", layers);
+
+            return ResponseEntity
+                    .status(200)
+                    .cacheControl(CacheControl.maxAge(WMS_INDEX_CACHE_HOURS, TimeUnit.HOURS))
+                    .body(body);
+        }
+        catch (GeoServerService.CommunicationException e) {
+            return errorAsMessage("could not communicate with GeoServer");
+        }
+        catch (GeoServerService.MalformedResponseException e) {
+            return errorAsMessage("GeoServer returned malformed response");
+        }
+    }
     }
 
     @GetMapping("/basemaps/{id}/{z}/{x}/{y}.png")
@@ -51,6 +80,14 @@ public class ProxyController {
         catch (BasemapService.CommunicationException e) {
             return errorAsTile();
         }
+    }
+
+    private ResponseEntity<Map<String, ?>> errorAsMessage(String message) {
+        Map<String, String> body = new HashMap<>();
+        body.put("error", message);
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(body);
     }
 
     private ResponseEntity<InputStreamResource> errorAsTile() {

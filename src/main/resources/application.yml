@@ -3,6 +3,9 @@ basemaps:
   aerial: https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiZGdyLWJhemlsZSIsImEiOiJjajdyeHRzcGkwd2xkMzJuMGZ5ODFwb2V3In0.FG0YpqYlaI3vQ0dohDAPxA
   osm: https://osm.geointservices.io/osm_tiles/{z}/{x}/{y}.png64
 
+geoserver:
+  baseURL: http://localhost:8080/geoserver/mbt
+
 logging:
   level:
     mil.nga.giat.mbt: DEBUG
